@@ -138,7 +138,7 @@ class StaticURLTests(TestCase):
         response = self.guest_client.get(
             reverse('posts:index'))
         posts = response.context['posts']
-        post = (self.post)
+        post = self.post
         self.assertIn(post, posts)
 
     def test_additional_group(self):
