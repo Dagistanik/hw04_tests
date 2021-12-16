@@ -54,10 +54,8 @@ class StaticURLTests(TestCase):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
 
-    def test_index_page_show_correct_context(self):
-        """Шаблон index сформирован с правильным контекстом."""
-        response = self.guest_client.get(reverse('posts:index'))
-        post = random.choice(response.context['posts'])
+    def correct_context(self, post) -> bool:
+        """Шаблоны сформированы с правильным контестом"""
         post_fields = {
             'author': Post.objects.get(pk=post.pk).author,
             'group': Post.objects.get(pk=post.pk).group,
@@ -67,6 +65,13 @@ class StaticURLTests(TestCase):
             with self.subTest(value=value):
                 post_field = getattr(post, value)
                 self.assertEqual(post_field, expected)
+            return True
+
+    def test_index_page_show_correct_context(self):
+        """Шаблон index сформирован с правильным контекстом."""
+        response = self.guest_client.get(reverse('posts:index'))
+        post = response.context['posts'][0]
+        self.assertTrue(self.correct_context(post))
 
     def test_group_list_page_show_correct_context(self):
         """Шаблон group_list сформирован с правильным контекстом."""
@@ -77,6 +82,8 @@ class StaticURLTests(TestCase):
         posts = response.context['posts']
         for post in posts:
             self.assertEqual(post.group, expected_group)
+        post0 = response.context['posts'][0]
+        self.assertTrue(self.correct_context(post0))
 
     def test_profile_page_show_correct_context(self):
         """Шаблон profile сформирован с правильным контекстом."""
@@ -86,6 +93,8 @@ class StaticURLTests(TestCase):
         page_obj = response.context['page_obj']
         post = random.choice(page_obj)
         self.assertEqual(post.author, username)
+        post0 = response.context['posts'][0]
+        self.assertTrue(self.correct_context(post0))
 
     def test_post_detail_show_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""
@@ -94,10 +103,11 @@ class StaticURLTests(TestCase):
             reverse('posts:post_detail', args=[post_id]))
         post = response.context['post']
         self.assertEqual(post.pk, post_id)
+        self.assertTrue(self.correct_context(post))
 
     def test_create_post_edit_show_correct_context(self):
         """Шаблон create_post сформирован с правильным контекстом."""
-        post_id = (self.post).pk
+        post_id = self.post.pk
         response = self.authorized_client.get(
             reverse('posts:post_edit', args=[post_id]))
         form_fields = {

@@ -54,6 +54,11 @@ class Post(models.Model):
         verbose_name='Текст поста',
         help_text='Введите текст поста'
     )
+    image = models.ImageField(
+        'Картинка',
+        upload_to='posts/',
+        blank=True
+    )
 
     class Meta:
         ordering = ('-pub_date',)

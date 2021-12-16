@@ -29,7 +29,6 @@ class PostCreateFormTests(TestCase):
 
     def test_create_post(self):
         """Валидная форма создает запись в Post и происходит редирект"""
-        posts_count = Post.objects.count()
         form_data = {
             'text': 'Тестовый тескт_1',
             'group': self.group.pk,
@@ -42,7 +41,8 @@ class PostCreateFormTests(TestCase):
         self.assertRedirects(
             response, reverse('posts:profile', args=['admin'])
         )
-        self.assertEqual(Post.objects.count(), posts_count + 1)
+        self.assertTrue(Post.objects.filter(
+            text=form_data['text'], group=form_data['group']).exists())
 
     def test_edit_post(self):
         """Происходит изменение поста"""
@@ -57,4 +57,5 @@ class PostCreateFormTests(TestCase):
             data=form_data,
             follow=True
         )
-        self.assertEqual(Post.objects.get(pk=post_id).text, expected_text)
+        self.assertTrue(Post.objects.filter(
+            text=form_data['text'], group=form_data['group']).exists())
