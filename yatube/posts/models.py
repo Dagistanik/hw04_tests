@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from .validators import validate_not_empty
+import datetime
 User = get_user_model()
 
 
@@ -65,3 +66,21 @@ class Post(models.Model):
 
     def __str__(self):
         return self.text[:15]
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+        Post,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='comments'
+    )
+    author = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='comments'
+    )
+    text = models.TextField()
+    created = models.DateField(
+    default=datetime.date.today
+    )

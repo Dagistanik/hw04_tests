@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from posts.models import Group, Post
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django import forms
 import random
@@ -22,11 +23,23 @@ class StaticURLTests(TestCase):
                 description=(f'тестовое описание{i}'),
             )
             cls.groups.append(group)
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00'
+            b'\x01\x00\x00\x00\x00\x21\xf9\x04'
+            b'\x01\x0a\x00\x01\x00\x2c\x00\x00'
+            b'\x00\x00\x01\x00\x01\x00\x00\x02'
+            b'\x02\x4c\x01\x00\x3b'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
         cls.post = Post.objects.create(
             author=cls.user,
             text=('Тестовый текст'),
-            group=(Group.objects.get(slug='test-slug0'))
-        )
+            group=(Group.objects.get(slug='test-slug0')),
+            image=uploaded)
 
     def setUp(self):
         self.guest_client = Client()
@@ -60,6 +73,7 @@ class StaticURLTests(TestCase):
             'author': Post.objects.get(pk=post.pk).author,
             'group': Post.objects.get(pk=post.pk).group,
             'text': Post.objects.get(pk=post.pk).text,
+            'image': Post.objects.get(pk=post.pk).image,
         }
         for value, expected in post_fields.items():
             with self.subTest(value=value):
@@ -91,10 +105,9 @@ class StaticURLTests(TestCase):
             reverse('posts:profile', args=['test_user']))
         username = response.context['username']
         page_obj = response.context['page_obj']
-        post = random.choice(page_obj)
+        post = page_obj[0]
         self.assertEqual(post.author, username)
-        post0 = response.context['posts'][0]
-        self.assertTrue(self.correct_context(post0))
+        self.assertTrue(self.correct_context(post))
 
     def test_post_detail_show_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""
@@ -157,8 +170,8 @@ class StaticURLTests(TestCase):
         """
         response = self.guest_client.get(
             reverse('posts:profile', args=['test_user']))
-        posts = response.context['posts']
-        self.assertIn(self.post, posts)
+        post = response.context['page_obj'][0]
+        self.assertEqual(post, self.post)
 
     def test_no_additional_group(self):
         """Дополнительная проверка что пост не попал в
