@@ -80,7 +80,18 @@ class Comment(models.Model):
         on_delete=models.SET_NULL,
         related_name='comments'
     )
-    text = models.TextField()
-    created = models.DateField(
-    default=datetime.date.today
+    text = models.TextField(
+        'Текст',
+        help_text='Текст нового комментария'
+    )
+    created = models.DateTimeField(
+        auto_now_add=True
+    )
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        related_name='follower'
+    )
+    author = models.ForeignKey(
+        related_name = 'following'
     )

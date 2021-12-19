@@ -1,11 +1,10 @@
 from django.test import TestCase, Client, override_settings
 from django.contrib.auth import get_user_model
-from posts.models import Post, Group
+from posts.models import Post, Group, Comment
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 import tempfile
 from django.conf import settings
-from posts.forms import PostForm
 import shutil
 
 
@@ -22,6 +21,7 @@ class PostCreateFormTests(TestCase):
         super().setUpClass()
         cls.user = User.objects.create(username='admin')
         cls.authorized_client = Client()
+        cls.guest_client = Client()
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test-slug',
@@ -32,6 +32,11 @@ class PostCreateFormTests(TestCase):
             group=cls.group,
             text='Тестовый текст',
         )
+        cls.comment = Comment.objects.create(
+            post= cls.post,
+            author=cls.user,
+            text='Тестовый комментарий'            
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -39,7 +44,10 @@ class PostCreateFormTests(TestCase):
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
         
     def setUp(self):
+        
+        # self.user = User.objects.create_user(self.user)
         self.authorized_client.force_login(self.user)
+        
 
     def test_create_post(self):
         """Валидная форма создает запись в Post и происходит редирект"""
@@ -90,3 +98,45 @@ class PostCreateFormTests(TestCase):
         self.assertTrue(Post.objects.filter(
             text=form_data['text'], group=form_data['group']).exists())
 
+    def  test_comment_guest_client(self):
+        """Неавторизованный пользователь не может добавить комментарий."""
+        post_id = self.post.pk
+        comments_count = Comment.objects.count()
+        form_data = {
+            'post': self.post,
+            'author': self.user,
+            'text': 'Тестовый комментарий'
+        }
+        self.guest_client.post(
+            reverse('posts:add_comment', args=[post_id]),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(comments_count, Comment.objects.count())
+
+
+    # def  test_comment_guest_client(self):
+    #     """Неавторизованный пользователь не может добавить комментарий."""
+    #     post_id = self.post.pk
+    #     comments_count = Comment.objects.count()
+    #     form_data = {
+    #         'post': self.post,
+    #         'author': self.user,
+    #         'text': 'Тестовый комментарий'
+    #     }
+    #     response = self.authorized_client.get('posts:post_detail', args=[post_id])
+    #     comment = 
+    #     self.guest_client.post(
+    #         reverse('posts:add_comment', args=[post_id]),
+    #         data=form_data,
+    #         follow=True
+    #     )
+    #     self.assertIn(comment, response.context)
+
+
+
+
+
+
+
+   

@@ -1,4 +1,5 @@
 from django.shortcuts import redirect, render, get_object_or_404
+from django.views.decorators.cache import cache_page
 # from yatube.posts.models import Comment
 
 from yatube.settings import PAGE_NUM
@@ -11,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from posts.forms import PostForm, CommentForm
 
 
-
+@cache_page(20)
 def index(request):
     post_list = Post.objects.all()
     paginator = Paginator(post_list, PAGE_NUM)
@@ -67,13 +68,13 @@ def post_detail(request, post_id):
     posts_num = post.author.posts.all().count()
     title = str(post)
     form = CommentForm()
-    comment = post.comments.all()
+    comments = post.comments.all()
     context = {
         'post': post,
         'posts_num': posts_num,
         'title': title,
         'form': form,
-        'comment': comment 
+        'comments': comments,
     }
     return render(request, 'posts/post_detail.html', context)
 

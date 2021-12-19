@@ -2,6 +2,8 @@
 {% load thumbnail %}
 {% block title %}Последние обновления на сайте{% endblock %}
 {% block content %}
+{% load cache %}
+{% cache 500 sidebar %}
   {% for post in page_obj %}
     <ul>
      <li>
@@ -20,5 +22,6 @@
     {% endif %} 
    {% if not forloop.last %}<hr>{% endif %}
   {% endfor %}
+  {% endcache %} 
   {% include 'posts/includes/paginator.html' %}
 {% endblock %}

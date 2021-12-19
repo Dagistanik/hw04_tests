@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
-from posts.models import Group, Post
+from posts.models import Group, Post, Comment
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django import forms
@@ -40,6 +40,11 @@ class StaticURLTests(TestCase):
             text=('Тестовый текст'),
             group=(Group.objects.get(slug='test-slug0')),
             image=uploaded)
+        cls.comment = Comment.objects.create(
+            post= cls.post,
+            author=cls.user,
+            text='Тестовый комментарий'
+        )
 
     def setUp(self):
         self.guest_client = Client()
@@ -181,6 +186,14 @@ class StaticURLTests(TestCase):
             reverse('posts:slug', args=['test-slug1']))
         page_obj = response.context['page_obj']
         self.assertNotIn(self.post, page_obj)
+
+    
+    def test_comment_add_post_detail(self):
+        """Проверка что комментарий появляется на странице поста"""
+        post_id = self.post.pk
+        response = self.authorized_client.get(reverse('posts:post_detail', args=[post_id]))
+        comments = response.context['comments']
+        self.assertIn(self.comment, comments)
 
 
 class TestPaginator(TestCase):
