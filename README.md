@@ -6,7 +6,7 @@
 #### Инструкция по развёртыванию
 * Клонировать репозиторий и перейти в него в командной строке:
 ```python
-git clone https://github.com/Dagistanik/hw_python_oop.git
+git clone https://github.com/Dagistanik/hw04_tests.git
 ```
 ```python
 cd hw_python_oop
