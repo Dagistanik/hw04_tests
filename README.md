@@ -9,7 +9,7 @@
 git clone https://github.com/Dagistanik/hw04_tests.git
 ```
 ```python
-cd hw_python_oop
+cd hw04_tests
 ```
 * Cоздать и активировать виртуальное окружение:
 ```python
